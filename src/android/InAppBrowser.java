@@ -806,7 +806,7 @@ public class InAppBrowser extends CordovaPlugin {
                 } catch (android.content.ActivityNotFoundException e) {
                     LOG.e(LOG_TAG, "Error dialing " + url + ": " + e.toString());
                 }
-            } else if (url.startsWith("geo:") || url.startsWith(WebView.SCHEME_MAILTO) || url.startsWith("market:")) {
+            } else if (url.startsWith("geo:") || url.startsWith(WebView.SCHEME_MAILTO) || url.startsWith("market:") || url.startsWith("ispmobile:") {
                 try {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
                     intent.setData(Uri.parse(url));
@@ -814,6 +814,22 @@ public class InAppBrowser extends CordovaPlugin {
                     return true;
                 } catch (android.content.ActivityNotFoundException e) {
                     LOG.e(LOG_TAG, "Error with " + url + ": " + e.toString());
+                }
+            }
+            else if (url != null && url.startsWith("intent:")) {
+                try {
+                    Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+                    Intent existPackage = cordova.getActivity().getPackageManager().getLaunchIntentForPackage(intent.getPackage());
+                    if (existPackage != null) {
+                        cordova.getActivity().startActivity(intent);
+                    } else {
+                        Intent marketIntent = new Intent(Intent.ACTION_VIEW);
+                        marketIntent.setData(Uri.parse("market://details?id="+intent.getPackage()));
+                        cordova.getActivity().startActivity(marketIntent);
+                    }
+                    return true;
+                }catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
             // If sms:5551212?body=This is the message
